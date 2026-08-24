@@ -6,6 +6,9 @@ using RifeOS.Host.Views;
 
 namespace RifeOS.Host;
 
+/// <summary>
+/// The git is very difficult to use!@Renly
+/// </summary>
 public partial class App : Application
 {
     public static IHost AppHost { get; set; } = null!;
