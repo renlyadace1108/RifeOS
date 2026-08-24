@@ -1,0 +1,308 @@
+﻿<Window x:Class="RifeOS.Host.Views.ShellWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:RifeOS.Host.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewModels:ShellViewModel}"
+        Title="{Binding ActiveTitle}"
+        Height="800" Width="1280"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Background="{DynamicResource BackgroundBrush}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </Window.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="0"
+                      CornerRadius="0"
+                      CaptionHeight="40"
+                      UseAeroCaptionButtons="False"
+                      ResizeBorderThickness="6" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <!-- 1. 顶部无边框 TitleBar -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="RifeOS"
+                           FontWeight="ExtraBold"
+                           FontSize="15"
+                           Foreground="{DynamicResource PrimaryBrush}"
+                           VerticalAlignment="Center" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Click="BtnMinimize_Click" Width="46" Height="40" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}" Content="—" Cursor="Hand"/>
+                    <Button Click="BtnMaximize_Click" Width="46" Height="40" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}" Content="▢" Cursor="Hand"/>
+                    <Button Click="BtnClose_Click" Width="46" Height="40" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}" Content="✕" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. 中间桌面工作区 (仅保留 RifeOS 文本) -->
+        <Grid Grid.Row="1" Background="{DynamicResource BackgroundBrush}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <TextBlock Text="RifeOS" FontSize="56" FontWeight="Black" HorizontalAlignment="Center" Foreground="{DynamicResource BorderBrush}" Opacity="0.5" />
+            </StackPanel>
+
+            <ContentControl Content="{Binding CurrentView}" />
+        </Grid>
+
+        <!-- 3. 底部动态任务栏 -->
+        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0"
+                        Command="{Binding ToggleStartMenuCommand}"
+                        Width="36" Height="36"
+                        Background="{DynamicResource PrimaryBrush}"
+                        Foreground="#FFFFFF"
+                        FontWeight="Black"
+                        FontSize="16"
+                        BorderThickness="0"
+                        Content="R"
+                        Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="18"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="12,0">
+                    <ItemsControl ItemsSource="{Binding ActiveSessions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource BackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Margin="4,7"
+                                        Padding="12,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="{Binding Metadata.Name}"
+                                                Command="{Binding DataContext.SwitchToAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding Metadata.Id}"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{DynamicResource ForegroundBrush}"
+                                                FontWeight="SemiBold"
+                                                Cursor="Hand" />
+                                        <Button Content="✕"
+                                                Command="{Binding DataContext.CloseAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding Metadata.Id}"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{DynamicResource ForegroundBrush}"
+                                                Opacity="0.7"
+                                                Margin="8,0,0,0"
+                                                Cursor="Hand" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- 4. 开始菜单抽屉 (集成应用与系统设置) -->
+        <Border Grid.Row="1"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                Width="380" Height="520"
+                Margin="12,0,0,10"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="10"
+                Visibility="{Binding IsStartMenuOpen, Converter={StaticResource BoolToVisConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="65" />
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{DynamicResource BackgroundBrush}" CornerRadius="10,10,0,0" Padding="14,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource PrimaryBrush}">
+                            <TextBlock Text="R" FontWeight="Bold" FontSize="17" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding User.Nickname}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource ForegroundBrush}" />
+                            <TextBlock Text="{Binding User.Signature}" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.6" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,1" Padding="6,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Command="{Binding SelectMenuTabCommand}"
+                                CommandParameter="0"
+                                Content="📦 应用程序"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource ForegroundBrush}"
+                                FontWeight="SemiBold"
+                                FontSize="12"
+                                Cursor="Hand" />
+
+                        <Button Grid.Column="1"
+                                Command="{Binding SelectMenuTabCommand}"
+                                CommandParameter="1"
+                                Content="⚙ 系统设置"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource ForegroundBrush}"
+                                FontWeight="SemiBold"
+                                FontSize="12"
+                                Cursor="Hand" />
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="2" Margin="10">
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedMenuTab}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="36" />
+                        </Grid.RowDefinitions>
+
+                        <ListBox Grid.Row="0"
+                                 ItemsSource="{Binding InstalledApps}"
+                                 Background="Transparent"
+                                 BorderThickness="0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.LaunchAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding Id}"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            HorizontalContentAlignment="Stretch"
+                                            Cursor="Hand"
+                                            Padding="6,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="30" Height="30" CornerRadius="6" Background="{DynamicResource BackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,10,0">
+                                                <TextBlock Text="📦" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource ForegroundBrush}"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.6"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <Button Grid.Row="1" Command="{Binding RefreshInstalledAppsCommand}" Content="🔄 刷新应用" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.8" HorizontalAlignment="Left" Cursor="Hand" FontSize="11"/>
+                    </Grid>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer.Style>
+                            <Style TargetType="ScrollViewer">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedMenuTab}" Value="1">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ScrollViewer.Style>
+                        <StackPanel Margin="4">
+                            <TextBlock Text="界面外观" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Border Background="{DynamicResource BackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Command="{Binding SetThemeModeCommand}" CommandParameter="Dark" Content="🌙 深色模式" Margin="0,0,3,0" Padding="0,6" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource ForegroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Cursor="Hand" FontSize="11"/>
+                                    <Button Grid.Column="1" Command="{Binding SetThemeModeCommand}" CommandParameter="Light" Content="☀️ 浅色模式" Margin="3,0,0,0" Padding="0,6" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource ForegroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Cursor="Hand" FontSize="11"/>
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Text="当前用户" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Border Background="{DynamicResource BackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="昵称" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding User.Nickname}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ForegroundBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="ID" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding User.UserId}" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <TextBlock Text="签名" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding User.Signature}" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="160"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="关于系统" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,6"/>
+                            <Border Background="{DynamicResource BackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="版本" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding SystemVersion}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="架构" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding RuntimeFramework}" FontSize="10" Foreground="{DynamicResource ForegroundBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <TextBlock Text="开发者" FontSize="11" Foreground="{DynamicResource ForegroundBrush}" Opacity="0.7"/>
+                                        <TextBlock Text="{Binding SystemAuthor}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource ForegroundBrush}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

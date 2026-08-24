@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/RifeOS.Apps.Settings/RifeOS.Apps.Settings.csproj" />
+    <Project Path="src/RifeOS.Apps.Tasks/RifeOS.Apps.Tasks.csproj" />
+    <Project Path="src/RifeOS.Host/RifeOS.Host.csproj" />
     <Project Path="src/RifeOS.SDK/RifeOS.SDK.csproj" />
   </Folder>
 </Solution>
