@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RifeOS.SDK/RifeOS.SDK.csproj" />
+  </Folder>
+</Solution>
