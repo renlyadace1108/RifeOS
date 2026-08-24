@@ -1,0 +1,313 @@
+﻿<UserControl x:Class="RifeOS.Host.Views.DesktopView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewmodels="clr-namespace:RifeOS.Host.ViewModels"
+             Background="Transparent"
+             Foreground="{DynamicResource TextPrimaryBrush}"
+             x:Name="RootDesktop">
+
+    <UserControl.DataContext>
+        <viewmodels:DesktopViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <!-- ================= 1. 右键菜单整体外框重构 (圆角 + 高级阴影) ================= -->
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <!-- 彻底抛弃系统默认框，自己画一个圆角带阴影的 Border -->
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <!-- 现代级大平滑阴影 -->
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.3" Color="Black"/>
+                            </Border.Effect>
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ================= 2. 分隔线重构 (去掉系统 3D 凹陷感) ================= -->
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Rectangle Height="1" Fill="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ================= 3. MenuItem 菜单项重构 (干掉左侧白边和蓝色复选框) ================= -->
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="MenuBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Margin="2,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <!-- Check / 图标区域 -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- 文本区域 -->
+                                    <ColumnDefinition Width="24"/>
+                                    <!-- 子菜单箭头区域 -->
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 自己画一个极简的打勾符号，替换原本丑陋的蓝色 CheckBox -->
+                                <TextBlock x:Name="CheckMark" Text="✓" Foreground="{TemplateBinding Foreground}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+
+                                <!-- 菜单文字 -->
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="4,8,16,8" VerticalAlignment="Center"/>
+
+                                <!-- 子菜单箭头 -->
+                                <Path x:Name="Arrow" Grid.Column="2" Fill="{TemplateBinding Foreground}" Data="M 0,0 L 4,4 L 0,8 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+
+                                <!-- 子菜单弹窗本身，同样应用圆角和深色阴影 -->
+                                <Popup x:Name="SubMenuPopup" AllowsTransparency="True" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" Focusable="False">
+                                    <Border Background="{DynamicResource SurfaceBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="4"
+                                            Margin="0,0,16,16">
+                                        <!-- Margin 用于避免遮挡阴影 -->
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.3" Color="Black"/>
+                                        </Border.Effect>
+                                        <ItemsPresenter/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <!-- 悬停时：显示圆角极简底色高亮，而不是系统刺眼的蓝色框 -->
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="MenuBorder" Property="Background" Value="{DynamicResource SubSurfaceBackgroundBrush}"/>
+                            </Trigger>
+                            <!-- 如果是父级菜单：显示箭头 -->
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="Arrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- 如果被选中 (IsChecked) -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- 禁用时：文字变灰 -->
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 桌面级右键菜单 (去除了硬编码的颜色绑定，统一使用上方 Style) -->
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="添加小组件 (Widgets)">
+                <MenuItem Header="今日状态" Command="{Binding AddWidgetCommand}" CommandParameter="Overview"/>
+                <MenuItem Header="最近使用" Command="{Binding AddWidgetCommand}" CommandParameter="RecentFiles"/>
+            </MenuItem>
+            <Separator Background="{DynamicResource BorderBrush}"/>
+            <MenuItem Header="查看 (View)">
+                <MenuItem Header="大图标" Command="{Binding ChangeIconSizeCommand}" CommandParameter="Large"/>
+                <MenuItem Header="中等图标" Command="{Binding ChangeIconSizeCommand}" CommandParameter="Medium"/>
+                <MenuItem Header="小图标" Command="{Binding ChangeIconSizeCommand}" CommandParameter="Small"/>
+            </MenuItem>
+            <Separator Background="{DynamicResource BorderBrush}"/>
+            <MenuItem Header="网格吸附 (Snap to Grid)" IsCheckable="True" IsChecked="{Binding SnapToGrid}" Command="{Binding ToggleSnapToGridCommand}"/>
+            <MenuItem Header="显示桌面图标" IsCheckable="True" IsChecked="{Binding ShowIcons}" Command="{Binding ToggleShowIconsCommand}"/>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+
+    <Grid>
+        <!-- 1. 动态壁纸层 -->
+        <Border IsHitTestVisible="False">
+            <Border.Background>
+                <RadialGradientBrush Center="0.8,0.2" GradientOrigin="0.8,0.2" RadiusX="0.8" RadiusY="0.8">
+                    <GradientStop Color="#153B82F6" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <!-- 水印 -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="{DynamicResource WatermarkOpacity}" IsHitTestVisible="False">
+            <TextBlock Text="RifeOS" FontSize="68" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock Text="Desktop Shell v3.0" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+        </StackPanel>
+
+        <!-- 2. 小组件管理层 (支持拖拽、固定、移除) -->
+        <ItemsControl ItemsSource="{Binding Widgets}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas Background="{x:Null}"
+                            PreviewMouseLeftButtonDown="Widget_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="Widget_PreviewMouseMove"
+                            PreviewMouseLeftButtonUp="Widget_PreviewMouseLeftButtonUp"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border x:Name="WidgetContainer" Width="260" Background="{DynamicResource SurfaceBackgroundBrush}" Opacity="0.85" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Tag="{Binding DataContext, ElementName=RootDesktop}">
+
+                        <!-- 小组件专属右键菜单 -->
+                        <Border.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="锁定位置 (Pin)" IsCheckable="True" IsChecked="{Binding IsPinned}"/>
+                                <Separator Background="{DynamicResource BorderBrush}"/>
+                                <MenuItem Header="移除小组件" Command="{Binding PlacementTarget.Tag.RemoveWidgetCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding}" Foreground="#EF4444"/>
+                            </ContextMenu>
+                        </Border.ContextMenu>
+
+                        <Grid>
+                            <!-- A. 今日状态组件 -->
+                            <StackPanel x:Name="OverviewWidget" Visibility="Collapsed">
+                                <TextBlock Text="今日状态 (Today)" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="🎯 目标完成率" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding DataContext.WidgetGoalRate, ElementName=RootDesktop, StringFormat={}{0}%}" FontSize="12" FontWeight="Bold" Foreground="#3B82F6" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding DataContext.WidgetGoalRate, ElementName=RootDesktop}" Height="4" BorderThickness="0" Background="{DynamicResource SubSurfaceBackgroundBrush}" Foreground="#3B82F6" Margin="0,0,0,16"/>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="📚 核心学习" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding DataContext.WidgetStudyHours, ElementName=RootDesktop, StringFormat={}{0} h}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Grid>
+                                    <TextBlock Text="🏃 运动计划" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock FontSize="12" FontWeight="Bold" HorizontalAlignment="Right">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="未完成"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.WidgetIsExerciseDone, ElementName=RootDesktop}" Value="True">
+                                                        <Setter Property="Text" Value="已达成"/>
+                                                        <Setter Property="Foreground" Value="#10B981"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- B. 最近使用文件组件 -->
+                            <StackPanel x:Name="RecentFilesWidget" Visibility="Collapsed">
+                                <TextBlock Text="最近使用 (Recent)" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="📄" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Architecture.md" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="📊" Margin="0,0,8,0"/>
+                                    <TextBlock Text="overview_data.json" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📝" Margin="0,0,8,0"/>
+                                    <TextBlock Text="note.txt" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 动态切换组件 UI 以及锁定样式 -->
+                    <DataTemplate.Triggers>
+                        <!-- 区分组件类型 -->
+                        <DataTrigger Binding="{Binding WidgetKey}" Value="Overview">
+                            <Setter TargetName="OverviewWidget" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WidgetKey}" Value="RecentFiles">
+                            <Setter TargetName="RecentFilesWidget" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <!-- 解锁时：添加边框高亮和拖拽指针 -->
+                        <DataTrigger Binding="{Binding IsPinned}" Value="False">
+                            <Setter TargetName="WidgetContainer" Property="Cursor" Value="SizeAll"/>
+                            <Setter TargetName="WidgetContainer" Property="BorderBrush" Value="#3B82F6"/>
+                            <Setter TargetName="WidgetContainer" Property="BorderThickness" Value="2"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- 3. 桌面快捷方式图标层 -->
+        <ItemsControl ItemsSource="{Binding Icons}" Visibility="{Binding ShowIcons, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas Background="Transparent" 
+                            PreviewMouseLeftButtonDown="Canvas_PreviewMouseLeftButtonDown"
+                            PreviewMouseMove="Canvas_PreviewMouseMove"
+                            PreviewMouseLeftButtonUp="Canvas_PreviewMouseLeftButtonUp"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{Binding X, Mode=TwoWay}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Y, Mode=TwoWay}"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Width="{Binding DataContext.IconSize, ElementName=RootDesktop}" Height="{Binding DataContext.IconSize, ElementName=RootDesktop}" Background="Transparent" BorderThickness="0" Cursor="Hand" Tag="{Binding ElementName=RootDesktop}" MouseDoubleClick="DesktopIcon_MouseDoubleClick">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" Background="Transparent" CornerRadius="6">
+                                    <Grid Margin="4">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Width="40" Height="40" CornerRadius="8" Background="{Binding Color}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Icon}" FontSize="18" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Grid.Row="1" Text="{Binding Title}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,4,0,0">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect ShadowDepth="1" BlurRadius="3" Color="Black" Opacity="0.5"/>
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#20FFFFFF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>

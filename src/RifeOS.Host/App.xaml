@@ -16,7 +16,7 @@
         <!-- 磁贴与 App 专属主题联动画刷 (深色默认) -->
         <SolidColorBrush x:Key="TileTasksBrush" Color="#1D4ED8"/>
         <SolidColorBrush x:Key="TileSettingsBrush" Color="#4F46E5"/>
-        <SolidColorBrush x:Key="TileDashboardBrush" Color="#047857"/>
+        <SolidColorBrush x:Key="TileOverviewBrush" Color="#047857"/>
         <SolidColorBrush x:Key="TileDefaultBrush" Color="#2563EB"/>
         <SolidColorBrush x:Key="TileTextBrush" Color="#FFFFFF"/>
     </Application.Resources>

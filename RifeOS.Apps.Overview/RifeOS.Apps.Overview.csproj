@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- 1. 修复路径：指向正确的 src 源码目录中的 SDK -->
+		<ProjectReference Include="..\src\RifeOS.SDK\RifeOS.SDK.csproj" />
+
+		<!-- 2. 修复包冲突：降级对齐宿主，消除警告 -->
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+	</ItemGroup>
+</Project>

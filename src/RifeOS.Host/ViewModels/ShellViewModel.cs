@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RifeOS.Host.Kernel.Lifecycle;
 using RifeOS.Host.Services;
-using RifeOS.Host.Views;
 using RifeOS.SDK.App;
 using RifeOS.SDK.Enums;
 
@@ -44,18 +43,20 @@ public partial class ShellViewModel : ObservableObject
     public ObservableCollection<NotificationItemViewModel> ActiveToasts => NotificationService.Instance.ActiveToasts;
     public ObservableCollection<RunningAppItemViewModel> RunningApps { get; } = new();
 
+    // 1. 在“所有应用”列表中注册 Overview 插件
     public ObservableCollection<AppMenuItemViewModel> AllApps { get; } = new()
     {
         new AppMenuItemViewModel { AppKey = "Tasks", Title = "任务清单 (Tasks)", Icon = "📝", Color = "#1E3A8A" },
         new AppMenuItemViewModel { AppKey = "Settings", Title = "系统设置 (Settings)", Icon = "⚙", Color = "#374151" },
-        new AppMenuItemViewModel { AppKey = "Dashboard", Title = "概览工作台", Icon = "📊", Color = "#065F46" }
+        new AppMenuItemViewModel { AppKey = "Overview", Title = "个人总览 (Overview)", Icon = "📊", Color = "#059669" }
     };
 
+    // 2. 默认在 Windows 10 磁贴上固定 Overview 宽磁贴
     public ObservableCollection<PinnedTileViewModel> PinnedTiles { get; } = new()
     {
         new PinnedTileViewModel { AppKey = "Tasks", Title = "任务清单", Icon = "📝", Background = "#1D4ED8", IsWide = false },
         new PinnedTileViewModel { AppKey = "Settings", Title = "系统设置", Icon = "⚙", Background = "#4F46E5", IsWide = false },
-        new PinnedTileViewModel { AppKey = "Dashboard", Title = "概览工作台", Icon = "⚡", Background = "#047857", IsWide = true, Subtitle = "系统资源与监控" }
+        new PinnedTileViewModel { AppKey = "Overview", Title = "个人总览", Icon = "📊", Background = "#059669", IsWide = true, Subtitle = "今日状态与生命数据" }
     };
 
     [ObservableProperty] private object? _currentAppView;
@@ -69,14 +70,14 @@ public partial class ShellViewModel : ObservableObject
     private void UnpinFromTiles(PinnedTileViewModel tile)
     {
         PinnedTiles.Remove(tile);
-        IsStartMenuOpen = true; // 保持开始菜单展开
+        IsStartMenuOpen = true;
         NotificationService.Instance.Show("开始菜单", $"已取消固定: {tile.Title}", NotificationLevel.Info);
     }
 
     [RelayCommand]
     private void PinToTiles(AppMenuItemViewModel app)
     {
-        IsStartMenuOpen = true; // 保持开始菜单展开
+        IsStartMenuOpen = true;
 
         if (PinnedTiles.Any(t => t.AppKey == app.AppKey))
         {
@@ -98,12 +99,6 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ShowDashboard()
-    {
-        LaunchApp("Dashboard");
-    }
-
-    [RelayCommand]
     private void LaunchApp(string appKey)
     {
         IsStartMenuOpen = false;
@@ -115,22 +110,7 @@ public partial class ShellViewModel : ObservableObject
             return;
         }
 
-        // 内置概览工作台视图
-        if (appKey == "Dashboard")
-        {
-            var dashItem = new RunningAppItemViewModel
-            {
-                AppKey = "Dashboard",
-                Title = "概览工作台",
-                Icon = "📊",
-                View = new DashboardView()
-            };
-            RunningApps.Add(dashItem);
-            SwitchToApp(dashItem);
-            return;
-        }
-
-        // 外部动态插件
+        // 统一通过 ALC 微内核动态装载沙箱插件
         var appInstance = AppLifecycleManager.Instance.LoadPlugin(appKey);
         if (appInstance != null)
         {
@@ -138,7 +118,8 @@ public partial class ShellViewModel : ObservableObject
             {
                 AppKey = appKey,
                 Title = appInstance.Metadata.Name,
-                Icon = appKey switch { "Tasks" => "📝", "Settings" => "⚙", _ => "📦" },
+                // 图标映射
+                Icon = appKey switch { "Tasks" => "📝", "Settings" => "⚙", "Overview" => "📊", _ => "📦" },
                 View = appInstance.CreateView(),
                 AppInstance = appInstance
             };
@@ -182,11 +163,9 @@ public partial class ShellViewModel : ObservableObject
     {
         RunningApps.Remove(targetApp);
 
-        if (targetApp.AppKey != "Dashboard")
-        {
-            AppLifecycleManager.Instance.UnloadPlugin(targetApp.AppKey);
-            NotificationService.Instance.Show("应用释放", $"已卸载插件并回收内存: {targetApp.Title}", NotificationLevel.Info);
-        }
+        // 彻底释放任何 ALC 插件进程级内存
+        AppLifecycleManager.Instance.UnloadPlugin(targetApp.AppKey);
+        NotificationService.Instance.Show("应用释放", $"已卸载插件并回收内存: {targetApp.Title}", NotificationLevel.Info);
 
         if (CurrentAppView == targetApp.View)
         {
