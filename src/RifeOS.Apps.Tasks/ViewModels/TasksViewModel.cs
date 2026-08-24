@@ -1,105 +1,83 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-using RifeOS.Apps.Tasks.Data;
+using RifeOS.Apps.Tasks.Models;
 using RifeOS.SDK.Context;
-using RifeOS.SDK.Models;
 
 namespace RifeOS.Apps.Tasks.ViewModels;
 
-public sealed partial class TasksViewModel : ObservableObject
+public partial class TasksViewModel : ObservableObject
 {
     private readonly IRifeAppContext _context;
-    private readonly string _dbPath;
-
-    [ObservableProperty]
-    private string _newTaskTitle = string.Empty;
-
-    [ObservableProperty]
-    private int _newTaskPriority = 2;
+    private const string DataFileName = "tasks.json";
 
     public ObservableCollection<TaskItem> Tasks { get; } = new();
+
+    [ObservableProperty] private string _newTaskTitle = string.Empty;
 
     public TasksViewModel(IRifeAppContext context)
     {
         _context = context;
-        _dbPath = _context.Storage.GetDatabaseFilePath("tasks.db");
+        _ = LoadTasksAsync();
     }
 
-    public async Task InitializeDatabaseAsync()
+    private async Task LoadTasksAsync()
     {
-        using var db = new TasksDbContext(_dbPath);
-        await db.Database.EnsureCreatedAsync();
-        await LoadTasksAsync();
-    }
-
-    [RelayCommand]
-    public async Task LoadTasksAsync()
-    {
-        using var db = new TasksDbContext(_dbPath);
-        var items = await db.Tasks.OrderByDescending(t => t.CreatedAt).ToListAsync();
-
-        Tasks.Clear();
-        foreach (var item in items)
+        try
         {
-            Tasks.Add(item);
+            var json = await _context.Storage.ReadTextAsync(DataFileName);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var list = JsonSerializer.Deserialize<List<TaskItem>>(json);
+                if (list != null)
+                {
+                    Tasks.Clear();
+                    foreach (var item in list) Tasks.Add(item);
+                }
+            }
         }
+        catch { }
+    }
+
+    private async Task SaveTasksAsync()
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(Tasks.ToList(), new JsonSerializerOptions { WriteIndented = true });
+            await _context.Storage.WriteTextAsync(DataFileName, json);
+        }
+        catch { }
     }
 
     [RelayCommand]
-    public async Task AddTaskAsync()
+    private async Task AddTask()
     {
         if (string.IsNullOrWhiteSpace(NewTaskTitle)) return;
 
         var task = new TaskItem
         {
             Title = NewTaskTitle.Trim(),
-            Priority = NewTaskPriority,
-            IsCompleted = false,
-            CreatedAt = DateTime.UtcNow
+            IsCompleted = false
         };
-
-        using (var db = new TasksDbContext(_dbPath))
-        {
-            db.Tasks.Add(task);
-            await db.SaveChangesAsync();
-        }
 
         Tasks.Insert(0, task);
         NewTaskTitle = string.Empty;
-
-        await _context.Notification.ShowAsync(new NotificationMessage(
-            Title: "任务已创建",
-            Content: $"「{task.Title}」已添加到清单",
-            Type: SDK.Enums.NotificationType.Success,
-            SourceAppId: "com.rifeos.tasks"
-        ));
+        await SaveTasksAsync();
+        _context.Notification.Show("任务已添加", task.Title);
     }
 
     [RelayCommand]
-    public async Task ToggleTaskAsync(TaskItem task)
+    private async Task ToggleTask(TaskItem task)
     {
-        using var db = new TasksDbContext(_dbPath);
-        var entity = await db.Tasks.FindAsync(task.Id);
-        if (entity != null)
-        {
-            entity.IsCompleted = task.IsCompleted;
-            await db.SaveChangesAsync();
-        }
+        await SaveTasksAsync();
     }
 
     [RelayCommand]
-    public async Task DeleteTaskAsync(TaskItem task)
+    private async Task DeleteTask(TaskItem task)
     {
-        using var db = new TasksDbContext(_dbPath);
-        var entity = await db.Tasks.FindAsync(task.Id);
-        if (entity != null)
-        {
-            db.Tasks.Remove(entity);
-            await db.SaveChangesAsync();
-        }
-
         Tasks.Remove(task);
+        await SaveTasksAsync();
+        _context.Notification.Show("任务已删除", task.Title);
     }
 }

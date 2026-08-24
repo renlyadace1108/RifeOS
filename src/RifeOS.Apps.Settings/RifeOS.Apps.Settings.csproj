@@ -20,8 +20,6 @@
     <ItemGroup>
       <PluginFiles Include="$(TargetDir)**\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(PluginFiles)"
-          DestinationFolder="$(SolutionDir)src\RifeOS.Host\bin\$(Configuration)\net8.0-windows\Apps\com.rifeos.settings\%(RecursiveDir)"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(SolutionDir)src\RifeOS.Host\bin\$(Configuration)\net8.0-windows\Apps\com.rifeos.settings\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

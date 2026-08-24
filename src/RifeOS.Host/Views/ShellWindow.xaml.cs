@@ -1,61 +1,63 @@
-﻿using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
-using RifeOS.Host.Interop;
+﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using RifeOS.Host.ViewModels;
 
 namespace RifeOS.Host.Views;
 
 public partial class ShellWindow : Window
 {
-    public ShellWindow(ShellViewModel viewModel)
+    private bool _isContextMenuOpen = false;
+
+    public ShellWindow()
     {
         InitializeComponent();
-        DataContext = viewModel;
-        SourceInitialized += ShellWindow_SourceInitialized;
     }
 
-    private void ShellWindow_SourceInitialized(object? sender, EventArgs e)
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        var handle = new WindowInteropHelper(this).Handle;
-        var source = HwndSource.FromHwnd(handle);
-        source?.AddHook(WindowProc);
-    }
-
-    private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        if (msg == NativeMethods.WM_GETMINMAXINFO)
+        if (e.LeftButton == MouseButtonState.Pressed)
         {
-            WmGetMinMaxInfo(hwnd, lParam);
-            handled = true;
+            DragMove();
         }
-        return IntPtr.Zero;
     }
 
-    private static void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
+    private void StartButton_MouseEnter(object sender, MouseEventArgs e)
     {
-        var mmi = Marshal.PtrToStructure<NativeMethods.MINMAXINFO>(lParam);
-        var monitor = NativeMethods.MonitorFromWindow(hwnd, NativeMethods.MONITOR_DEFAULTTONEAREST);
-
-        if (monitor != IntPtr.Zero)
+        if (DataContext is ShellViewModel vm)
         {
-            var monitorInfo = new NativeMethods.MONITORINFO();
-            monitorInfo.cbSize = Marshal.SizeOf(typeof(NativeMethods.MONITORINFO));
-            NativeMethods.GetMonitorInfo(monitor, ref monitorInfo);
-
-            var rcWorkArea = monitorInfo.rcWork;
-            var rcMonitorArea = monitorInfo.rcMonitor;
-
-            mmi.ptMaxPosition.x = Math.Abs(rcWorkArea.left - rcMonitorArea.left);
-            mmi.ptMaxPosition.y = Math.Abs(rcWorkArea.top - rcMonitorArea.top);
-            mmi.ptMaxSize.x = Math.Abs(rcWorkArea.right - rcWorkArea.left);
-            mmi.ptMaxSize.y = Math.Abs(rcWorkArea.bottom - rcWorkArea.top);
+            vm.OpenStartMenu();
         }
-
-        Marshal.StructureToPtr(mmi, lParam, true);
     }
 
-    private void BtnMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-    private void BtnMaximize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
+    private void StartMenu_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        _isContextMenuOpen = true;
+    }
+
+    private void StartMenu_ContextMenuClosing(object sender, ContextMenuEventArgs e)
+    {
+        _isContextMenuOpen = false;
+    }
+
+    private void StartMenu_MouseLeave(object sender, MouseEventArgs e)
+    {
+        // 若右键菜单正在展示，绝不收起开始菜单
+        if (_isContextMenuOpen) return;
+
+        if (sender is FrameworkElement element)
+        {
+            var pos = e.GetPosition(element);
+            // 双重校验：若光标仍处于开始菜单矩形范围内，不予关闭
+            if (pos.X >= 0 && pos.X <= element.ActualWidth && pos.Y >= 0 && pos.Y <= element.ActualHeight)
+            {
+                return;
+            }
+        }
+
+        if (DataContext is ShellViewModel vm)
+        {
+            vm.CloseStartMenu();
+        }
+    }
 }

@@ -5,55 +5,35 @@ namespace RifeOS.Host.Services;
 
 public sealed class EventBusService : IEventBus
 {
-    private readonly ConcurrentDictionary<Type, List<Delegate>> _handlers = new();
-    private readonly object _lock = new();
+    public static EventBusService Instance { get; } = new();
 
-    public async Task PublishAsync<TEvent>(TEvent eventData, CancellationToken cancellationToken = default) where TEvent : IEvent
+    private readonly ConcurrentDictionary<Type, List<Delegate>> _subscribers = new();
+
+    public void Publish<T>(T message)
     {
-        List<Delegate> targets;
-        lock (_lock)
+        if (_subscribers.TryGetValue(typeof(T), out var handlers))
         {
-            if (!_handlers.TryGetValue(typeof(TEvent), out var list)) return;
-            targets = [.. list];
-        }
-
-        foreach (var handler in targets)
-        {
-            if (cancellationToken.IsCancellationRequested) break;
-            if (handler is Func<TEvent, Task> asyncCallback)
+            lock (handlers)
             {
-                await asyncCallback(eventData);
-            }
-        }
-    }
-
-    public IDisposable Subscribe<TEvent>(Func<TEvent, Task> handler) where TEvent : IEvent
-    {
-        var type = typeof(TEvent);
-        lock (_lock)
-        {
-            var list = _handlers.GetOrAdd(type, _ => new List<Delegate>());
-            list.Add(handler);
-        }
-
-        return new SubscriptionToken(() =>
-        {
-            lock (_lock)
-            {
-                if (_handlers.TryGetValue(type, out var list))
+                foreach (var handler in handlers.ToArray())
                 {
-                    list.Remove(handler);
+                    if (handler is Action<T> action) action(message);
                 }
             }
-        });
+        }
     }
 
-    private sealed class SubscriptionToken(Action unsubscribe) : IDisposable
+    public void Subscribe<T>(Action<T> handler)
     {
-        private Action? _unsubscribe = unsubscribe;
-        public void Dispose()
+        var handlers = _subscribers.GetOrAdd(typeof(T), _ => new List<Delegate>());
+        lock (handlers) { handlers.Add(handler); }
+    }
+
+    public void Unsubscribe<T>(Action<T> handler)
+    {
+        if (_subscribers.TryGetValue(typeof(T), out var handlers))
         {
-            Interlocked.Exchange(ref _unsubscribe, null)?.Invoke();
+            lock (handlers) { handlers.Remove(handler); }
         }
     }
 }

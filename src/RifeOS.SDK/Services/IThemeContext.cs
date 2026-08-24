@@ -1,13 +1,8 @@
-﻿using RifeOS.SDK.Enums;
-
-namespace RifeOS.SDK.Services;
+﻿namespace RifeOS.SDK.Services;
 
 public interface IThemeContext
 {
-    ThemeMode CurrentMode { get; }
-    string PrimaryColorHex { get; }
-    string BackgroundColorHex { get; }
-    string ForegroundColorHex { get; }
-    event EventHandler<ThemeMode>? ThemeChanged;
-    void SetTheme(ThemeMode mode);
+    string CurrentTheme { get; }
+    void SwitchTheme(string themeName);
+    event Action<string>? ThemeChanged;
 }

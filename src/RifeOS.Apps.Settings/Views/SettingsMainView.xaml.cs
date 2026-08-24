@@ -5,9 +5,13 @@ namespace RifeOS.Apps.Settings.Views;
 
 public partial class SettingsMainView : UserControl
 {
-    public SettingsMainView(SettingsViewModel viewModel)
+    public SettingsMainView()
     {
         InitializeComponent();
+    }
+
+    public SettingsMainView(SettingsViewModel viewModel) : this()
+    {
         DataContext = viewModel;
     }
 }

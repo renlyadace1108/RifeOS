@@ -10,6 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RifeOS.Apps.Settings\RifeOS.Apps.Settings.csproj" />
+    <ProjectReference Include="..\RifeOS.Apps.Tasks\RifeOS.Apps.Tasks.csproj" />
     <ProjectReference Include="..\RifeOS.SDK\RifeOS.SDK.csproj" />
   </ItemGroup>
 
@@ -18,5 +20,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="App.xaml" />
   </ItemGroup>
 </Project>
