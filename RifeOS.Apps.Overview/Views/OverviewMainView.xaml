@@ -1,0 +1,149 @@
+﻿<UserControl x:Class="RifeOS.Apps.Overview.Views.OverviewMainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource AppBackgroundBrush}"
+             Foreground="{DynamicResource TextPrimaryBrush}"
+             FontFamily="Segoe UI, Microsoft YaHei UI">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="36,28">
+        <StackPanel MaxWidth="800" HorizontalAlignment="Left">
+
+            <TextBlock Text="个人 Overview" FontSize="24" FontWeight="Bold" Margin="0,0,0,24"/>
+
+            <!-- ================= 1. 今日状态 ================= -->
+            <TextBlock Text="今日状态" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+            <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                <StackPanel>
+                    <!-- 目标完成率进度条 -->
+                    <Grid Margin="0,0,0,20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel Margin="0,0,0,8">
+                            <TextBlock Text="今日目标完成率" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding Data.TodayGoalRate, StringFormat={}{0}%}" FontSize="14" FontWeight="Bold" Foreground="#3B82F6" HorizontalAlignment="Right"/>
+                        </DockPanel>
+                        <!-- 原生进度条美化 -->
+                        <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding Data.TodayGoalRate}" Height="8" BorderThickness="0" Background="{DynamicResource SubSurfaceBackgroundBrush}">
+                            <ProgressBar.Foreground>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#3B82F6" Offset="0"/>
+                                    <GradientStop Color="#60A5FA" Offset="1"/>
+                                </LinearGradientBrush>
+                            </ProgressBar.Foreground>
+                        </ProgressBar>
+                    </Grid>
+
+                    <!-- 今日三维数据卡片 -->
+                    <UniformGrid Columns="3">
+                        <StackPanel Margin="0,0,10,0">
+                            <TextBlock Text="📚 学习" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                <TextBlock Text="{Binding Data.StudyHours}" FontSize="20" FontWeight="Bold"/>
+                                <TextBlock Text=" 小时" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="2,0,0,3" VerticalAlignment="Bottom"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Margin="10,0,10,0">
+                            <TextBlock Text="🏃 运动" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock Text="完成" FontSize="20" FontWeight="Bold" Foreground="#10B981">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Data.IsExerciseDone}" Value="False">
+                                                <Setter Property="Text" Value="未完成"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <StackPanel Margin="10,0,0,0">
+                            <TextBlock Text="📖 阅读" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                <TextBlock Text="{Binding Data.ReadPages}" FontSize="20" FontWeight="Bold"/>
+                                <TextBlock Text=" 页" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="2,0,0,3" VerticalAlignment="Bottom"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- ================= 2. 人生数据面板 ================= -->
+            <TextBlock Text="人生数据面板" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+            <UniformGrid Columns="4" Margin="0,0,0,24">
+                <!-- 卡片 1 -->
+                <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="总学习时间" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Data.TotalStudyHours, StringFormat={}{0}h}" FontSize="18" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+                <!-- 卡片 2 -->
+                <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="习惯完成率" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Data.HabitCompletionRate, StringFormat={}{0}%}" FontSize="18" FontWeight="Bold" Foreground="#8B5CF6"/>
+                    </StackPanel>
+                </Border>
+                <!-- 卡片 3 -->
+                <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="目标进度" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Data.GoalProgress, StringFormat={}{0}%}" FontSize="18" FontWeight="Bold" Foreground="#F59E0B"/>
+                    </StackPanel>
+                </Border>
+                <!-- 卡片 4 -->
+                <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="任务完成数" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding Data.TasksCompleted}" FontSize="18" FontWeight="Bold" Foreground="#10B981"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ================= 3. 长期成长曲线 ================= -->
+            <TextBlock Text="长期成长曲线" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+            <Border Background="{DynamicResource SurfaceBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20,30,20,20">
+                <!-- 使用 ItemsControl 原生绘制动态柱状图 -->
+                <ItemsControl ItemsSource="{Binding GrowthCurve}" Height="120">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid VerticalAlignment="Bottom">
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <!-- 柱子实体 -->
+                                    <Border Width="28" Height="{Binding UIHeight}" Background="#3B82F6" CornerRadius="4,4,0,0" HorizontalAlignment="Center">
+                                        <!-- 柱子悬停特效 -->
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Opacity" Value="0.8"/>
+                                                        <Setter Property="Background" Value="#60A5FA"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                    <!-- 底部月份标签 -->
+                                    <TextBlock Text="{Binding Month}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

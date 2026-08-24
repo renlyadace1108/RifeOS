@@ -84,13 +84,11 @@
 
             <!-- 2. 主工作区 -->
             <Grid Grid.Row="1">
-                <!-- 纯净桌面背景水印 -->
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="{DynamicResource WatermarkOpacity}">
-                        <TextBlock Text="RifeOS" FontSize="68" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Made by Renly" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Grid>
+                <!-- 全新 Desktop Shell 外壳层 (置于最底层) -->
+                <local:DesktopView xmlns:local="clr-namespace:RifeOS.Host.Views" />
+
+                <!-- 动态插件应用容器 (悬浮于桌面之上) -->
+                <ContentControl Content="{Binding CurrentAppView}"/>
 
                 <!-- 动态插件容器 -->
                 <ContentControl Content="{Binding CurrentAppView}"/>
@@ -177,8 +175,8 @@
                                                                         <DataTrigger Binding="{Binding AppKey}" Value="Settings">
                                                                             <Setter Property="Background" Value="{DynamicResource TileSettingsBrush}"/>
                                                                         </DataTrigger>
-                                                                        <DataTrigger Binding="{Binding AppKey}" Value="Dashboard">
-                                                                            <Setter Property="Background" Value="{DynamicResource TileDashboardBrush}"/>
+                                                                        <DataTrigger Binding="{Binding AppKey}" Value="Overview">
+                                                                            <Setter Property="Background" Value="{DynamicResource TileOverviewBrush}"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -236,8 +234,8 @@
                                                                 <DataTrigger Binding="{Binding AppKey}" Value="Settings">
                                                                     <Setter Property="Background" Value="{DynamicResource TileSettingsBrush}"/>
                                                                 </DataTrigger>
-                                                                <DataTrigger Binding="{Binding AppKey}" Value="Dashboard">
-                                                                    <Setter Property="Background" Value="{DynamicResource TileDashboardBrush}"/>
+                                                                <DataTrigger Binding="{Binding AppKey}" Value="Overview">
+                                                                    <Setter Property="Background" Value="{DynamicResource TileOverviewBrush}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>

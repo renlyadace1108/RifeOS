@@ -43,7 +43,7 @@ public sealed class ThemeService : IThemeContext
                 // 浅色磁贴颜色（明亮饱满）
                 res["TileTasksBrush"] = new SolidColorBrush(Color.FromRgb(37, 99, 235));
                 res["TileSettingsBrush"] = new SolidColorBrush(Color.FromRgb(99, 102, 241));
-                res["TileDashboardBrush"] = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+                res["TileOverviewBrush"] = new SolidColorBrush(Color.FromRgb(16, 185, 129));
                 res["TileDefaultBrush"] = new SolidColorBrush(Color.FromRgb(59, 130, 246));
                 res["TileTextBrush"] = new SolidColorBrush(Color.FromRgb(255, 255, 255));
             }
@@ -61,7 +61,7 @@ public sealed class ThemeService : IThemeContext
                 // OLED 磁贴颜色（深邃对比）
                 res["TileTasksBrush"] = new SolidColorBrush(Color.FromRgb(30, 58, 138));
                 res["TileSettingsBrush"] = new SolidColorBrush(Color.FromRgb(67, 56, 202));
-                res["TileDashboardBrush"] = new SolidColorBrush(Color.FromRgb(6, 78, 59));
+                res["TileOverviewBrush"] = new SolidColorBrush(Color.FromRgb(6, 78, 59));
                 res["TileDefaultBrush"] = new SolidColorBrush(Color.FromRgb(30, 58, 138));
                 res["TileTextBrush"] = new SolidColorBrush(Color.FromRgb(240, 240, 240));
             }
@@ -79,7 +79,7 @@ public sealed class ThemeService : IThemeContext
                 // 默认深色磁贴颜色
                 res["TileTasksBrush"] = new SolidColorBrush(Color.FromRgb(29, 78, 216));
                 res["TileSettingsBrush"] = new SolidColorBrush(Color.FromRgb(79, 70, 229));
-                res["TileDashboardBrush"] = new SolidColorBrush(Color.FromRgb(4, 120, 87));
+                res["TileOverviewBrush"] = new SolidColorBrush(Color.FromRgb(4, 120, 87));
                 res["TileDefaultBrush"] = new SolidColorBrush(Color.FromRgb(37, 99, 235));
                 res["TileTextBrush"] = new SolidColorBrush(Color.FromRgb(255, 255, 255));
             }

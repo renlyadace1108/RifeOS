@@ -2,9 +2,9 @@
 
 namespace RifeOS.Host.Views;
 
-public partial class DashboardView : UserControl
+public partial class OverviewView : UserControl
 {
-    public DashboardView()
+    public OverviewView()
     {
         InitializeComponent();
     }
