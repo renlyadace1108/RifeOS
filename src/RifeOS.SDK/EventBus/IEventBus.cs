@@ -2,6 +2,7 @@
 
 public interface IEventBus
 {
-    Task PublishAsync<TEvent>(TEvent eventData, CancellationToken cancellationToken = default) where TEvent : IEvent;
-    IDisposable Subscribe<TEvent>(Func<TEvent, Task> handler) where TEvent : IEvent;
+    void Publish<T>(T message);
+    void Subscribe<T>(Action<T> handler);
+    void Unsubscribe<T>(Action<T> handler);
 }

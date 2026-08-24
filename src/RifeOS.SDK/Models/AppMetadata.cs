@@ -5,9 +5,9 @@ namespace RifeOS.SDK.Models;
 public sealed record AppMetadata(
     string Id,
     string Name,
-    string Version,
     string Description,
-    string Icon,
-    string Author,
-    AppCategory Category
+    string Version = "1.0.0",
+    string Author = "RifeOS",
+    string Icon = "DefaultAppIcon",
+    AppCategory Category = AppCategory.Tools
 );

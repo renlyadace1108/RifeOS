@@ -2,7 +2,9 @@
 
 public interface IAppStorage
 {
-    string DataDirectory { get; }
-    string GetDatabaseFilePath(string databaseFileName = "data.db");
-    void EnsureCreated();
+    string GetPath(string fileName);
+    Task<string?> ReadTextAsync(string fileName);
+    Task WriteTextAsync(string fileName, string content);
+    bool Exists(string fileName);
+    void Delete(string fileName);
 }

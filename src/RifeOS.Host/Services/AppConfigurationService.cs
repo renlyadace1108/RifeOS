@@ -1,59 +1,59 @@
-﻿using System.IO;
+﻿using RifeOS.SDK.Services;
+using System.Collections.Concurrent;
+using System.IO;
 using System.Text.Json;
-using RifeOS.SDK.Services;
 
 namespace RifeOS.Host.Services;
 
 public sealed class AppConfigurationService : IAppConfiguration
 {
     private readonly string _configFilePath;
-    private Dictionary<string, JsonElement> _cache = new();
+    private readonly ConcurrentDictionary<string, JsonElement> _configs = new();
 
-    public AppConfigurationService(string appId)
+    public AppConfigurationService(string configFilePath)
     {
-        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppData", "Config", appId);
-        Directory.CreateDirectory(dir);
-        _configFilePath = Path.Combine(dir, "settings.json");
+        _configFilePath = configFilePath;
         Load();
     }
 
     private void Load()
     {
-        if (!File.Exists(_configFilePath)) return;
-        try
-        {
-            var json = File.ReadAllText(_configFilePath);
-            _cache = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json) ?? new();
-        }
-        catch
-        {
-            _cache = new();
-        }
-    }
-
-    public T GetValue<T>(string key, T defaultValue)
-    {
-        if (_cache.TryGetValue(key, out var element))
+        if (File.Exists(_configFilePath))
         {
             try
             {
-                return JsonSerializer.Deserialize<T>(element.GetRawText()) ?? defaultValue;
+                string json = File.ReadAllText(_configFilePath);
+                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                if (dict != null)
+                {
+                    foreach (var kvp in dict) _configs[kvp.Key] = kvp.Value;
+                }
             }
-            catch
-            {
-                return defaultValue;
-            }
+            catch { }
+        }
+    }
+
+    public T? Get<T>(string key, T? defaultValue = default)
+    {
+        if (_configs.TryGetValue(key, out var element))
+        {
+            try { return element.Deserialize<T>(); }
+            catch { return defaultValue; }
         }
         return defaultValue;
     }
 
-    public async Task SetValueAsync<T>(string key, T value)
+    public void Set<T>(string key, T value)
     {
-        var rawJson = JsonSerializer.Serialize(value);
-        using var doc = JsonDocument.Parse(rawJson);
-        _cache[key] = doc.RootElement.Clone();
+        var json = JsonSerializer.Serialize(value);
+        _configs[key] = JsonDocument.Parse(json).RootElement;
+    }
 
-        var output = JsonSerializer.Serialize(_cache, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_configFilePath, output);
+    public async Task SaveAsync()
+    {
+        var dir = Path.GetDirectoryName(_configFilePath);
+        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+        var json = JsonSerializer.Serialize(_configs, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(_configFilePath, json);
     }
 }
