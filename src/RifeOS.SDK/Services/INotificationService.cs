@@ -1,8 +1,10 @@
-﻿using RifeOS.SDK.Models;
+﻿using RifeOS.SDK.Enums;
+using RifeOS.SDK.Models;
 
 namespace RifeOS.SDK.Services;
 
 public interface INotificationService
 {
-    Task ShowAsync(NotificationMessage notification, CancellationToken cancellationToken = default);
+    void Show(string title, string content, NotificationLevel level = NotificationLevel.Info);
+    Task ShowAsync(NotificationMessage message, CancellationToken cancellationToken = default);
 }

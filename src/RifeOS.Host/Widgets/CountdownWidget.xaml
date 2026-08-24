@@ -1,0 +1,28 @@
+﻿<UserControl x:Class="RifeOS.Host.Widgets.CountdownWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="130" Background="#1A1A1A">
+    <Border CornerRadius="8" BorderBrush="#2A2A2A" BorderThickness="1" Padding="14">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="0">
+                <TextBlock Text="🎯" FontSize="13" Margin="0,0,6,0"/>
+                <TextBlock Text="目标倒计时" FontSize="13" FontWeight="SemiBold" Foreground="#E0E0E0"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1" Margin="0,8,0,0">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="考研初试倒计时 (2026/12/26)" FontSize="11" Foreground="#888888"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                        <TextBlock x:Name="TxtDays" Text="--" FontSize="24" FontWeight="Bold" Foreground="#F59E0B"/>
+                        <TextBlock Text=" 天" FontSize="13" Foreground="#888888" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

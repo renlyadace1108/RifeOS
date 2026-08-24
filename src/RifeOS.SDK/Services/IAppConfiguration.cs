@@ -2,6 +2,7 @@
 
 public interface IAppConfiguration
 {
-    T GetValue<T>(string key, T defaultValue);
-    Task SetValueAsync<T>(string key, T value);
+    T? Get<T>(string key, T? defaultValue = default);
+    void Set<T>(string key, T value);
+    Task SaveAsync();
 }

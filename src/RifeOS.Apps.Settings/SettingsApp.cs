@@ -7,48 +7,31 @@ using RifeOS.SDK.Models;
 
 namespace RifeOS.Apps.Settings;
 
-public sealed class SettingsApp : IRifeApp
+public class SettingsApp : IRifeApp
 {
-    private SettingsViewModel? _viewModel;
-    private SettingsMainView? _view;
-
     public AppMetadata Metadata { get; } = new(
-        Id: "com.rifeos.settings",
-        Name: "系统设置",
-        Version: "1.0.0",
-        Description: "个性化主题、用户画像与系统关于配置",
-        Icon: "SettingsIcon",
-        Author: "Renly",
-        Category: AppCategory.System
+        "Settings",
+        "系统设置",
+        "系统级通用配置与个性化",
+        "1.0.0",
+        "RifeOS",
+        "SettingsIcon",
+        AppCategory.System
     );
 
-    public AppLifecycleState State { get; private set; } = AppLifecycleState.Created;
+    private IRifeAppContext? _context;
 
-    public Task InitializeAsync(IRifeAppContext context, CancellationToken cancellationToken = default)
+    public void Initialize(IRifeAppContext context)
     {
-        State = AppLifecycleState.Initializing;
-        _viewModel = new SettingsViewModel(context);
-        _view = new SettingsMainView(_viewModel);
-        State = AppLifecycleState.Running;
-        return Task.CompletedTask;
+        _context = context;
     }
 
     public object CreateView()
     {
-        return _view ?? throw new InvalidOperationException("视图尚未初始化。");
+        if (_context == null) throw new InvalidOperationException("SettingsApp 尚未初始化。");
+        var viewModel = new SettingsViewModel(_context);
+        return new SettingsMainView(viewModel);
     }
 
-    public Task OnSuspendAsync(CancellationToken cancellationToken = default)
-    {
-        State = AppLifecycleState.Suspended;
-        return Task.CompletedTask;
-    }
-
-    public Task OnTerminateAsync(CancellationToken cancellationToken = default)
-    {
-        State = AppLifecycleState.Terminated;
-        _view = null;
-        _viewModel = null;
-        return Task.CompletedTask;
-    }
+    public void Cleanup() { }
 }

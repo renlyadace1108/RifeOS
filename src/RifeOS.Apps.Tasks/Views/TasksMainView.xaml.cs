@@ -5,9 +5,13 @@ namespace RifeOS.Apps.Tasks.Views;
 
 public partial class TasksMainView : UserControl
 {
-    public TasksMainView(TasksViewModel viewModel)
+    public TasksMainView()
     {
         InitializeComponent();
+    }
+
+    public TasksMainView(TasksViewModel viewModel) : this()
+    {
         DataContext = viewModel;
     }
 }

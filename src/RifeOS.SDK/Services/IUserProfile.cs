@@ -2,8 +2,7 @@
 
 public interface IUserProfile
 {
-    string UserId { get; }
-    string Nickname { get; }
-    string Avatar { get; }
-    string Signature { get; }
+    string UserName { get; }
+    string AvatarPath { get; }
+    DateTime CreatedAt { get; }
 }
